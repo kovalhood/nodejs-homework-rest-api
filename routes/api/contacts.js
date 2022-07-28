@@ -1,14 +1,14 @@
 const express = require('express')
 
-const contacts = require('../../models/contacts');
+const Contact = require('../../models/contact');
 const { createError } = require('../../helpers');
-const { contactSchema } = require('../../schemas');
+const { contactSchema, updateFavoriteSchema } = require('../../schemas');
 
 const router = express.Router()
 
 router.get('/', async (req, res, next) => {
   try {
-    const result = await contacts.listContacts();
+    const result = await Contact.find({}, '-createdAt -updatedAt');
     res.json(result)
   } catch (error) {
     next(error);
@@ -18,7 +18,7 @@ router.get('/', async (req, res, next) => {
 router.get('/:contactId', async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const result = await contacts.getContactById(contactId);
+    const result = await Contact.findById(contactId);
 
     if (!result) {
       throw createError(404);
@@ -38,7 +38,7 @@ router.post('/', async (req, res, next) => {
       throw createError(400, "missing required name field");
     }
 
-    const result = await contacts.addContact(req.body);
+    const result = await Contact.create(req.body);
     res.status(201).json(result)
   } catch (error) {
     next(error);
@@ -48,7 +48,7 @@ router.post('/', async (req, res, next) => {
 router.delete('/:contactId', async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const result = await contacts.removeContact(contactId);
+    const result = await Contact.findByIdAndRemove(contactId);
 
     if (!result) {
       throw createError(404);
@@ -71,7 +71,7 @@ router.put('/:contactId', async (req, res, next) => {
     }
 
     const { contactId } = req.params;
-    const result = await contacts.updateContactById(contactId, req.body);
+    const result = await Contact.findByIdAndUpdate(contactId, req.body, { new: true });
 
     if (!result) {
       throw createError(404);
@@ -83,4 +83,25 @@ router.put('/:contactId', async (req, res, next) => {
   }
 })
 
-module.exports = router
+router.patch('/:contactId/favorite', async (req, res, next) => {
+  try {
+    // Preventing lack of necessary data
+    const { error } = updateFavoriteSchema(req.body);
+    if (error) {
+      throw createError(400, "missing field favorite");
+    }
+
+    const { contactId } = req.params;
+    const result = await Contact.findByIdAndUpdate(contactId, req.body, { new: true });
+
+    if (!result) {
+      throw createError(404);
+    }
+
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+})
+
+module.exports = router;
