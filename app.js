@@ -5,6 +5,8 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
+global.basedir = __dirname;
+
 const contactsRouter = require('./routes/api/contacts')
 
 const app = express()

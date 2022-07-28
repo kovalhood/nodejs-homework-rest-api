@@ -1,19 +1,16 @@
-const Contact = require('../../models/contact');
-const { createError } = require('../../helpers');
+const { basedir } = global;
+const { Contact } = require(`${basedir}/models/contact`);
+const { createError } = require(`${basedir}/helpers`);
 
-const getContactById = async (req, res, next) => {
-  try {
-    const { contactId } = req.params;
-    const result = await Contact.findById(contactId);
+const getContactById = async (req, res) => {
+  const { contactId } = req.params;
+  const result = await Contact.findById(contactId);
 
-    if (!result) {
-      throw createError(404);
-    }
-
-    res.json(result)
-  } catch (error) {
-    next(error);
+  if (!result) {
+    throw createError(404);
   }
+
+  res.json(result)
 }
 
 module.exports = getContactById;
